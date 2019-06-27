@@ -113,7 +113,7 @@ EX 代价树的BFS
 
   定义一个评价函数$f$，对当前的搜索状态进行评估，找出一个最有希望的节点来扩展
 
-- 启发式搜索算法$A$（$A​$算法）
+- 启发式搜索算法$A$（$A$算法）
 
   - 评价函数的格式：
     $$
@@ -162,7 +162,7 @@ EX 代价树的BFS
 
   - 定理：
 
-    设对同一个问题定义了两个$A^*$算法$A_1$和$A_2$，若$A_2$比$A_1$有较多的启发信息，即对所有非目标节点有$h_2(n) > h_1(n)$，则在具有一条从s到t的路径的隐含图上，搜索结束时，由$A2$所扩展的每一个节点，也必定由$A1$所扩展，即$A_1$扩展的节点数至少和$A2​$一样多。
+    设对同一个问题定义了两个$A^*$算法$A_1$和$A_2$，若$A_2$比$A_1$有较多的启发信息，即对所有非目标节点有$h_2(n) > h_1(n)$，则在具有一条从s到t的路径的隐含图上，搜索结束时，由$A2$所扩展的每一个节点，也必定由$A1$所扩展，即$A_1$扩展的节点数至少和$A2$一样多。
 
     简写：如果$h_2(n) > h_1(n)$（目标节点除外），则$A_1$扩展的节点数$\ge A_2$扩展的节点数
 
@@ -515,7 +515,7 @@ SOLUTION 把所有的P(X|Y)，P(Y)等算出来就行
 
 对于一个超平面y=wx+b及一个训练集，定义间隔如下：
 
-​	函数间隔：$y(wx+b)​$ （超平面关于样本点(x,y)的）函数间隔，\mathrm{min}_{x,y}\{y(wx+b)\} （超平面关于训练集T的）函数间隔
+​	函数间隔：$y(wx+b)$ （超平面关于样本点(x,y)的）函数间隔，\mathrm{min}_{x,y}\{y(wx+b)\} （超平面关于训练集T的）函数间隔
 
 ​	几何间隔：$\gamma = min y(wx+b)/|w|$
 
@@ -523,13 +523,41 @@ SOLUTION 把所有的P(X|Y)，P(Y)等算出来就行
 
 由于最后取的是输出符号，所以scale其实不重要，不妨做归一化简化问题：取超平面关于训练集的函数间隔γ|w|=1
 
-最终目标函数转化为$minimize  |w|^2/2, \forall y(wx+b) \ge 1​$
+最终目标函数转化为$minimize  |w|^2/2, \forall y(wx+b) \ge 1$
 
 EX 已知若干正负例，求最大间隔超平面
 
 SOLUTION 列出所有约束，然后变成规划问题（向量模长最小化）
 
-（待补充）对偶算法：Lagrange duality，$max_\alpha min_{w,b} L(w,b,\alpha) = |w|^2/2-\sum \alpha \gamma |w|+\sum \alpha$
+**关于对偶算法的推导（帮助记忆公式）**
+
+线性可分SVM原始问题是一个带约束的最小值问题：$\arg\min_{W,b}(\frac{1}{2}\left|\left|W\right|\right|)^2,\,y_i(W^\mathrm{T}X_i+b),\,\forall i\in 1,2,\cdots,N$
+
+使用Lagrange乘子可以转化为无约束最值问题，其中$\alpha=(\alpha_1\;\alpha_2\;\cdots\;\alpha_N)^\mathrm{T}$：
+$$
+\mathcal{L}(W,b,\alpha)=\arg\max_{\alpha}\arg\min_{W,b}(\frac{1}{2}\left|\left|W\right|\right|^2-\sum_{i=1}^N \alpha_i(y_i(W^\mathrm{T}X_i+b)-1)
+$$
+改写$\frac{1}{2}\left|\left|W\right|\right|^2=\frac{1}{2}W^\mathrm{T}W=\frac{1}{2}W^\mathrm{T}\boldsymbol{I}W$，利用二次型求导的相关结论，可得到
+$$
+\frac{\partial{\mathcal{L}}}{\partial{W}}=W^\mathrm{T}-\sum_{i=1}^N(\alpha_iy_iX_i^{\mathrm{T}})\\
+\frac{\partial{\mathcal{L}}}{\partial{b}}=-\sum_{i=1}^N \alpha_iy_i
+$$
+令上述偏导为0（可以再求一下Hessian矩阵，是半正定矩阵，左上角为$\boldsymbol{I}$，其他部分均为0，从而关于$W,\,b$能取最小值），代入$\mathcal{L}(W,b,\alpha)$，消去$W,\,b$，得到
+$$
+\mathcal{L}=\arg\max_{\alpha}(-\frac{1}{2}\sum_{i=1}^N\sum_{j=1}^N\alpha_i\alpha_jy_iy_jX_i^\mathrm{T}X_j+\sum_{i=1}^N\alpha_i)=\arg\min_{\alpha}(\frac{1}{2}\sum_{i=1}^N\sum_{j=1}^N\alpha_i\alpha_jy_iy_jX_i^\mathrm{T}X_j-\sum_{i=1}^N\alpha_i)\\
+\mbox{其中}\sum_{i=1}^N\alpha_iy_i=0,\,\alpha_i\ge 0,\,\forall i=1,2,\cdots,N
+$$
+由此可以方便地解出Lagrange乘子向量$\alpha$。令第一个偏导为0时得到$W^\mathrm{T}$的计算式，两边取转置，得到
+$$
+W=\sum_{i=1}^N \alpha_iy_iX_i
+$$
+代入超平面方程，得到
+$$
+b=y_j-W^\mathrm{T}X_j
+$$
+此$X_j$应为支持向量，对应$\alpha_j>0$。
+
+
 
 线性支持向量机 松弛变量和惩罚项
 
@@ -658,3 +686,4 @@ C4.5：信息增益比和连续值
 ### 6.6 一些深入的问题
 
 - 修剪不一致的局部解图
+
